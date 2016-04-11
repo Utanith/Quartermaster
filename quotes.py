@@ -9,6 +9,7 @@ class QuoteSection(StaticSection):
 
 @module.commands('qstats')
 def stats(bot, trigger):
+	"""Shows the number of quotes in the quote database."""
 	db = sqlite3.connect(bot.config.quote.dbname)
 	c = db.cursor()
 
