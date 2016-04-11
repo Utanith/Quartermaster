@@ -6,4 +6,4 @@ import git
 def pull(bot, trigger):
 	g = git.cmd.Git('/home/quartermaster/.sopel/modules')
 	res = g.pull()
-	bot.say(f)
+	bot.say(res)
