@@ -1,0 +1,1 @@
+import sopel.module
