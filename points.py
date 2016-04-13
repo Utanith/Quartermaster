@@ -222,8 +222,7 @@ class CoinPouch:
 
 		pval = self.getPoints(name, points)
 
-		c.execute('''SELECT count FROM log WHERE user = ? AND time = ?;''', (sender, today))
-		print("SELECT count FROM log WHERE user = {} AND time = {};".format(sender, today), "Dragon")
+		c.execute('''SELECT count FROM log WHERE user = ? AND time = ?;''', (self.getUserId(sender), today))
 		res = c.fetchall()
 
 		total = 0
