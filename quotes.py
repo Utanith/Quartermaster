@@ -84,10 +84,11 @@ def record(bot, trigger):
 		return
 
 	c.execute('''INSERT INTO quotes VALUES (?, ?)''', (nick, msg))
+	qid = c.lastrowid
 	db.commit()
 	db.close()
 	bot.db.set_nick_value(nick, 'lastsaid', None)
-	bot.say("Quote recorded!")
+	bot.say("Quote [{}] recorded!".format(qid))
 
 
 @module.rule('(.+)')
