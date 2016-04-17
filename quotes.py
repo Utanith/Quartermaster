@@ -35,13 +35,16 @@ def remove(bot, trigger):
 
 @module.commands('quote')
 @module.example('.quote Dragon')
+@module.example('.quote 17')
 def quote(bot, trigger):
-	"""Retrieve a random quote, for a specific user if specified"""
+	"""Retrieve a random quote, a specific quote, or a quote for a specific user if specified"""
 	db = sqlite3.connect(bot.config.quote.dbname)
 	c = db.cursor()
 	
 	nick = trigger.group(3)
-	if nick:
+	if int(nick):
+		c.execute('''SELECT ROWID,* FROM quotes WHERE ROWID = ?''', (nick,))
+	elif nick:
 		nick = nick.strip()
 		c.execute('''SELECT ROWID,* FROM quotes WHERE nick = ? ORDER BY RANDOM() LIMIT 1''', (nick,))
 	else:
