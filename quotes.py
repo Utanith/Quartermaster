@@ -43,11 +43,11 @@ def quote(bot, trigger):
 	
 	nick = trigger.group(3)
 	try:
-		nick = int(nick)
+		qid = int(nick)
 	except:
-		nick = trigger.group(3)
+		qid = None
 
-	if int(nick):
+	if qid:
 		c.execute('''SELECT ROWID,* FROM quotes WHERE ROWID = ?''', (nick,))
 	elif nick:
 		nick = nick.strip()
