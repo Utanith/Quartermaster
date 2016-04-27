@@ -85,7 +85,7 @@ def record(bot, trigger):
 	msg = ""
 	if quote[0] is "*":
 		quote = quote[1:]
-		msg = """"{nick} {quote}" ~{nick} {date}""".format(date = date.today().year, nick = nick, quote = quote)
+		msg = """"{nick} {quote}" ~{nick}, {date}""".format(date = date.today().year, nick = nick, quote = quote)
 	else:
 		msg = """"{}" ~{}, {}""".format(quote, nick, date.today().year)
 
