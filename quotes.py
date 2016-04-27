@@ -82,7 +82,7 @@ def record(bot, trigger):
 		bot.say("I don't have a quote for " + nick + " recorded.")
 		return
 
-	msg = """"{}" ~{}, {}""".format(quote[0], nick, date.today().year)
+	msg = """"{}" ~{}, {}""".format(quote, nick, date.today().year)
 
 	if len(msg) > 400:
 		bot.say("Sorry, that just isn't catchy enough.")
@@ -99,8 +99,13 @@ def record(bot, trigger):
 @module.rule('(.+)')
 @module.require_chanmsg()
 def memorize(bot, trigger):
-	if(trigger.groups(0)[0] != "."):
-		bot.db.set_nick_value(trigger.nick, 'lastsaid', trigger.groups(0))
+	msg = trigger.groups(0)[0]
+	if(msg[0] != "."):
+		if ":\x01ACTION" in trigger.raw.split(" "):
+			bot.db.set_nick_value(trigger.nick, 'lastsaid', "*" + msg + "*")
+		else:
+			bot.db.set_nick_value(trigger.nick, 'lastsaid', msg)
+
 
 def setup(bot):
 	bot.config.define_section('quote', QuoteSection)
