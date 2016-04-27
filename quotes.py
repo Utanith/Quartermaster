@@ -17,7 +17,7 @@ def stats(bot, trigger):
 	count = res.fetchone()[0]
 	bot.say("I have recorded {} quotes.".format(count))
 	
-@module.commands('delete')
+@module.commands('qdelete')
 @module.require_admin()
 def remove(bot, trigger):
 	db = sqlite3.connect(bot.config.quote.dbname)
