@@ -141,8 +141,9 @@ def take(bot, trigger):
     else:
         bot.notice("{} picked up {}.".format(trigger.nick, obj))
 
-@module.commands(['inventory', 'i'])
+@module.commands('inventory', 'i')
 def inven(bot, trigger):
+    """Lists the items in your inventory."""
     uid = registerPlayer(bot.db, trigger.nick)
 
     res = bot.db.execute('SELECT iid FROM rp_inventory WHERE uid = ?', (uid,))
