@@ -144,7 +144,7 @@ def inven(bot, trigger):
 
     items = []
     for item in res:
-        res = bot.db("SELECT name FROM rp_items WHERE id = ?", (item[0],))
+        res = bot.db.execute("SELECT name FROM rp_items WHERE id = ?", (item[0],))
         res = res.fetchone()
         if res:
             items.append(res[0])
