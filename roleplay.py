@@ -44,7 +44,6 @@ def look(bot, trigger):
     bot.notice("{}: {}".format(obj, getDesc(bot.db, id)), trigger.nick)
 
 @module.commands('describe')
-@module.example('.describe an object,Some description')
 def desc(bot, trigger):
     """Sets the description for an object"""
     obj, desc = trigger.group(2).split(",", 1)
