@@ -44,7 +44,7 @@ def look(bot, trigger):
 @module.commands('describe')
 def desc(bot, trigger):
     """Sets the description for an object"""
-    obj, desc = trigger.group(2).split(" ", 1)
+    obj, desc = trigger.group(2).split(",", 1)
     uid = registerPlayer(bot.db, trigger.nick)
     id = getID(bot.db, obj)
     if id is -1:
