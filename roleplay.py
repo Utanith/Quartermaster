@@ -69,7 +69,7 @@ def descself(bot, trigger):
     uid = registerPlayer(bot.db, trigger.nick)
     desc = trigger.group(0).split(' ', 1)[1]
 
-    bot.db.execute("UPDATE rp_players SET desc = ? WHERE name = ?", (desc, uid))
+    bot.db.execute("UPDATE rp_players SET desc = ? WHERE id = ?", (desc, uid))
     bot.notice("Updated your description.", trigger.nick)
 
 @module.commands('create')
@@ -188,6 +188,7 @@ def getDesc(db, id):
 
     if id[1] == 'plr':
         out = db.execute("SELECT desc FROM rp_players WHERE id = ?", (id[0],)).fetchone()[0]
+        print(out)
     elif id[1] == 'itm':
         out = db.execute("SELECT desc FROM rp_items WHERE id = ?", (id[0],)).fetchone()[0]
     elif id[1] == 'rom':
