@@ -74,8 +74,7 @@ def descself(bot, trigger):
 
 @module.commands('create')
 def create(bot, trigger):
-    obj = trigger.group(2)
-    desc = trigger.group(0).split(" ", 1)[1]
+    obj = trigger.group(2).split(" ", 1)[1] 
     id = getID(bot.db, obj)
 
     if id is not -1:
