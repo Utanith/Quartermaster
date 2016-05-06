@@ -84,18 +84,18 @@ def create(bot, trigger):
     uid = registerPlayer(bot.db, trigger.nick)
     loc = "{}'s inventory".format(trigger.nick)
 
-    bot.execute("BEGIN TRANSACTION")
+    bot.db.execute("BEGIN TRANSACTION")
     res = bot.db.execute("INSERT INTO rp_items(uid, name, desc, location) VALUES(?, ?, ?, ?)", (uid, obj, "", loc))
     if res.rowcount != 1:
-        bot.execute("ROLLBACK")
+        bot.db.execute("ROLLBACK")
         bot.notice("Sorry, there was a problem creating your item!", trigger.nick)
 
     res = bot.db.execute("INSERT INTO rp_inventory(uid, iid) VALUES(?, ?)", (uid, res.lastrowid))
     if res.rowcount != 1:
-        bot.execute("ROLLBACK")
-        bot.notice("Sorry, there was a problem creating your item!", trigger.nick)
+        bot.db.execute("ROLLBACK")
+        bot.db.notice("Sorry, there was a problem creating your item!", trigger.nick)
 
-    bot.execute("COMMIT")
+    bot.db.execute("COMMIT")
 
     bot.notice("Created {}.".format(obj), trigger.nick)
 
