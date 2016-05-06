@@ -74,7 +74,7 @@ def descself(bot, trigger):
 
 @module.commands('create')
 def create(bot, trigger):
-    obj = trigger.group(2).split(" ", 1)[1] 
+    obj = trigger.group(2) 
     id = getID(bot.db, obj)
 
     if id is not -1:
@@ -107,6 +107,7 @@ def drop(bot, trigger):
 
     if iid is -1:
         bot.notice("No such item.", trigger.nick)
+        return
 
     if iid[1] is 'plr':
         bot.notice("No such item.", trigger.nick)
