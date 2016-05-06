@@ -26,7 +26,9 @@ game = None
 #    pass
 
 @module.commands('look')
+@module.example('.look here')
 def look(bot, trigger):
+    """Displays a player's, object's, or room's description."""
     uid = registerPlayer(bot.db, trigger.nick)
     obj = trigger.group(2)
     id = getID(bot.db, obj)
@@ -42,6 +44,7 @@ def look(bot, trigger):
     bot.notice("{}: {}".format(obj, getDesc(bot.db, id)), trigger.nick)
 
 @module.commands('describe')
+@module.example('.describe an object,Some description')
 def desc(bot, trigger):
     """Sets the description for an object"""
     obj, desc = trigger.group(2).split(",", 1)
@@ -74,6 +77,7 @@ def descself(bot, trigger):
 
 @module.commands('create')
 def create(bot, trigger):
+    """Creates an object and puts it into your inventory."""
     obj = trigger.group(2) 
     id = getID(bot.db, obj)
 
@@ -101,6 +105,7 @@ def create(bot, trigger):
 
 @module.commands('drop')
 def drop(bot, trigger):
+    """Puts an object into the room and removes it from your inventory."""
     obj = trigger.group(2)
     iid = getID(bot.db, obj)
     uid = registerPlayer(bot.db, trigger.nick)
@@ -121,6 +126,7 @@ def drop(bot, trigger):
 
 @module.commands('take')
 def take(bot, trigger):
+    """Takes an object from the room and puts it into your inventory."""
     obj = trigger.group(2)
     iid = getID(bot.db, obj)
     uid = registerPlayer(bot.db, trigger.nick)
@@ -139,6 +145,7 @@ def take(bot, trigger):
 
 @module.commands(['inventory', 'i'])
 def inven(bot, trigger):
+    """Lists the items in your inventory"""
     uid = registerPlayer(bot.db, trigger.nick)
 
     res = bot.db.execute('SELECT iid FROM rp_inventory WHERE uid = ?', (uid,))
