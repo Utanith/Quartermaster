@@ -26,7 +26,6 @@ game = None
 #    pass
 
 @module.commands('look')
-@module.example('.look here')
 def look(bot, trigger):
     """Displays a player's, object's, or room's description."""
     uid = registerPlayer(bot.db, trigger.nick)
