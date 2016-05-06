@@ -74,8 +74,7 @@ def descself(bot, trigger):
 
 @module.commands('create')
 def create(bot, trigger):
-    obj = trigger.group(2)
-    desc = trigger.group(0).split(" ", 1)[1]
+    obj = trigger.group(2).split(" ", 1)[1] 
     id = getID(bot.db, obj)
 
     if id is not -1:
@@ -86,7 +85,7 @@ def create(bot, trigger):
     loc = "{}'s inventory".format(trigger.nick)
 
     bot.execute("BEGIN TRANSACTION")
-    res = bot.db.execute("INSERT INTO rp_items(uid, name, desc, location) VALUES(?, ?, ?, ?)", (uid, obj, desc, loc))
+    res = bot.db.execute("INSERT INTO rp_items(uid, name, desc, location) VALUES(?, ?, ?, ?)", (uid, obj, "", loc))
     if res.rowcount != 1:
         bot.execute("ROLLBACK")
         bot.notice("Sorry, there was a problem creating your item!", trigger.nick)
