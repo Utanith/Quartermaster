@@ -27,7 +27,7 @@ game = None
 
 @module.commands('look')
 def look(bot, trigger):
-    """Displays a player's, object's, or room's description."""
+    """Displays an object, player, or room description."""
     uid = registerPlayer(bot.db, trigger.nick)
     obj = trigger.group(2)
     id = getID(bot.db, obj)
@@ -44,7 +44,7 @@ def look(bot, trigger):
 
 @module.commands('describe')
 def desc(bot, trigger):
-    """Sets the description for an object"""
+    """Sets an object's description"""
     obj, desc = trigger.group(2).split(",", 1)
     uid = registerPlayer(bot.db, trigger.nick)
     id = getID(bot.db, obj)
@@ -66,7 +66,7 @@ def desc(bot, trigger):
 
 @module.commands('descself')
 def descself(bot, trigger):
-    """Sets the player's description"""
+    """Sets your description."""
     uid = registerPlayer(bot.db, trigger.nick)
     desc = trigger.group(0).split(' ', 1)[1]
 
@@ -75,7 +75,7 @@ def descself(bot, trigger):
 
 @module.commands('create')
 def create(bot, trigger):
-    """Creates an object and puts it into your inventory."""
+    """Creates an object and places it in your inventory"""
     obj = trigger.group(2) 
     id = getID(bot.db, obj)
 
@@ -103,7 +103,7 @@ def create(bot, trigger):
 
 @module.commands('drop')
 def drop(bot, trigger):
-    """Puts an object into the room and removes it from your inventory."""
+    """Remove an item from your inventory, placing it in the room."""
     obj = trigger.group(2)
     iid = getID(bot.db, obj)
     uid = registerPlayer(bot.db, trigger.nick)
@@ -124,7 +124,7 @@ def drop(bot, trigger):
 
 @module.commands('take')
 def take(bot, trigger):
-    """Takes an object from the room and puts it into your inventory."""
+    """Pick up an object."""
     obj = trigger.group(2)
     iid = getID(bot.db, obj)
     uid = registerPlayer(bot.db, trigger.nick)
@@ -143,7 +143,6 @@ def take(bot, trigger):
 
 @module.commands(['inventory', 'i'])
 def inven(bot, trigger):
-    """Lists the items in your inventory"""
     uid = registerPlayer(bot.db, trigger.nick)
 
     res = bot.db.execute('SELECT iid FROM rp_inventory WHERE uid = ?', (uid,))
