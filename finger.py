@@ -40,7 +40,7 @@ def _dataScript(s, db, stack=None):
     return data
 
 
-@module.commands('finger', 'f')
+@module.commands('finger')
 def finger(bot, trigger):
     user = trigger.nick
     key = None
@@ -75,7 +75,7 @@ def finger(bot, trigger):
     bot.notice("{}: {} {}".format(trigger.nick, key.title(), data))
 
 
-@module.commands('remember', 'r')
+@module.commands('remember')
 def remember(bot, trigger):
     key, val = trigger.group(2).split(",", 1)
     val = val.strip()
@@ -99,7 +99,7 @@ def remember(bot, trigger):
     bot.notice("Added key {} with data {}".format(key, val), trigger.nick)
 
 
-@module.commands('forget', 'f')
+@module.commands('forget')
 def forget(bot, trigger):
     key = trigger.group(2).lower()
 
