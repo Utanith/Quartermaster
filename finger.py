@@ -22,7 +22,7 @@ def _dataScript(s, db, stack=None):
     if '$date' in data:
         data = data.replace('$date', dt.strftime("%d%m%Y"))
 
-    sub = re.findall("\{([\w\s\d]+)\:([\w\s\d]{0,12})\}", data)
+    sub = re.findall("\{([\w\s\d]+)\:(!?[\w\s\d]{0,12})\}", data)
     for match in sub:
         linkU = match[0]
         linkK = match[1].lower()
