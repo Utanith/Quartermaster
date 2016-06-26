@@ -72,7 +72,7 @@ def finger(bot, trigger):
     if '$reader' in data:
         data = data.replace('$reader', trigger.nick)
 
-    bot.notice("{}: {} {}".format(trigger.nick, key.title(), data))
+    bot.notice("{}: {}".format(trigger.nick, data))
 
 
 @module.commands('remember')
