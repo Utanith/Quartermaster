@@ -19,10 +19,10 @@ def _dataScript(s, db, stack=None):
 
     dt = datetime.now()
 
-    if '$time' in data:
+    if '$ctime' in data:
         data = data.replace('$time', dt.strftime("%H%M%S"))
 
-    if '$date' in data:
+    if '$cdate' in data:
         data = data.replace('$date', dt.strftime("%d%m%Y"))
 
     sub = re.findall("\{([\w\s\d]+)\:(!?[\w\s\d]{0,12})\}", data)
@@ -96,6 +96,7 @@ def remember(bot, trigger):
     else:
         keystore = [key]
 
+    dt = datetime.now()
     if '$time' in val:
         val = val.replace('$time', dt.strftime("%H/%M/%S"))
 
