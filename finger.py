@@ -5,6 +5,9 @@ from datetime import datetime
 
 def _dataScript(s, db, stack=None):
     data = s
+    if data is None:
+        return ""
+
     if stack:
         counts = {}
         for itm in stack:
@@ -65,7 +68,7 @@ def finger(bot, trigger):
                 outkeys.append(k)
         bot.notice("{} has the following keys: ".format(user) + ", ".join(outkeys))
         return
-    else:
+    else if key is not None:
         key = key.lower()
         raw_data = bot.db.get_nick_value(user, "pks_" + key)
         data = _dataScript(raw_data, bot.db)
