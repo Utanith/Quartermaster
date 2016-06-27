@@ -96,11 +96,11 @@ def remember(bot, trigger):
     else:
         keystore = [key]
 
-    if '$time' in data:
-        data = val.replace('$time', dt.strftime("%H/%M/%S"))
+    if '$time' in val:
+        val = val.replace('$time', dt.strftime("%H/%M/%S"))
 
-    if '$date' in data:
-        data = val.replace('$date', dt.strftime("%d:%m:%Y"))
+    if '$date' in val:
+        val = val.replace('$date', dt.strftime("%d:%m:%Y"))
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
