@@ -60,7 +60,7 @@ def finger(bot, trigger):
         keys = [k.title() for k in bot.db.get_nick_value(user, "pkskeys").split("#")]
         outkeys = []
         for k in keys:
-            if k[0] is not '!':
+            if k[0] is not '!' or trigger.nick == user:
                 outkeys.append(k)
         bot.notice("{} has the following keys: ".format(user) + ", ".join(outkeys))
         return
