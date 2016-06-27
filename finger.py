@@ -56,7 +56,8 @@ def finger(bot, trigger):
 
     data = ""
 
-    if key is None:
+    keystring = bot.db.get_nick_value(user, "pkskeys")
+    if key is None and keystring is not None:
         keys = [k.title() for k in bot.db.get_nick_value(user, "pkskeys").split("#")]
         outkeys = []
         for k in keys:
