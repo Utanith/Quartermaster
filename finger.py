@@ -20,10 +20,10 @@ def _dataScript(s, db, stack=None):
     dt = datetime.now()
 
     if '$ctime' in data:
-        data = data.replace('$time', dt.strftime("%H%M%S"))
+        data = data.replace('$time', dt.strftime("%H:%M:%S"))
 
     if '$cdate' in data:
-        data = data.replace('$date', dt.strftime("%d%m%Y"))
+        data = data.replace('$date', dt.strftime("%d/%m/%Y"))
 
     sub = re.findall("\{([\w\s\d]+)\:(!?[\w\s\d]{0,12})\}", data)
     for match in sub:
@@ -98,10 +98,10 @@ def remember(bot, trigger):
 
     dt = datetime.now()
     if '$time' in val:
-        val = val.replace('$time', dt.strftime("%H/%M/%S"))
+        val = val.replace('$time', dt.strftime("%H:%M:%S"))
 
     if '$date' in val:
-        val = val.replace('$date', dt.strftime("%d:%m:%Y"))
+        val = val.replace('$date', dt.strftime("%d/%m/%Y"))
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
