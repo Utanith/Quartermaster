@@ -68,7 +68,7 @@ def finger(bot, trigger):
                 outkeys.append(k)
         bot.notice("{} has the following keys: ".format(user) + ", ".join(outkeys))
         return
-    else if key is not None:
+    elif key is not None:
         key = key.lower()
         raw_data = bot.db.get_nick_value(user, "pks_" + key)
         data = _dataScript(raw_data, bot.db)
