@@ -19,10 +19,10 @@ def _dataScript(s, db, stack=None):
 
     dt = datetime.now()
 
-    if '$ctime' in data:
+    if '$time' in data:
         data = data.replace('$time', dt.strftime("%H:%M:%S"))
 
-    if '$cdate' in data:
+    if '$date' in data:
         data = data.replace('$date', dt.strftime("%d/%m/%Y"))
 
     sub = re.findall("\{([\w\s\d]+)\:(!?[\w\s\d]{0,12})\}", data)
@@ -45,6 +45,8 @@ def _dataScript(s, db, stack=None):
 
 @module.commands('finger')
 def finger(bot, trigger):
+    """`.finger [nick] [key]`- Lists your keys. With [nick] specified, lists that nick's keys.
+    With [nick] and [key] specified, displays [nick]'s [key]."""
     user = trigger.nick
     key = None
     if trigger.group(2):
@@ -81,6 +83,11 @@ def finger(bot, trigger):
 
 @module.commands('remember')
 def remember(bot, trigger):
+    """`.remember [flag]<key>, <data>` - Sets <key> to <data>. ! can be specified as a flag to prevent
+    a key from being listed to other users. $ctime and $cdate can be used in <data> and will be replaced
+    with the current time (That is, when .remember is called). $time and $date will be replaced with the
+    same, but with the time that the key is read (i.e., when .finger is called). $reader will be replaced
+    with the nick that called .finger on the key."""
     key, val = trigger.group(2).split(",", 1)
     val = val.strip()
     key = key.strip().lower()
@@ -98,10 +105,10 @@ def remember(bot, trigger):
 
     dt = datetime.now()
     if '$time' in val:
-        val = val.replace('$time', dt.strftime("%H:%M:%S"))
+        val = val.replace('$ctime', dt.strftime("%H:%M:%S"))
 
     if '$date' in val:
-        val = val.replace('$date', dt.strftime("%d/%m/%Y"))
+        val = val.replace('$cdate', dt.strftime("%d/%m/%Y"))
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
@@ -112,6 +119,7 @@ def remember(bot, trigger):
 
 @module.commands('forget')
 def forget(bot, trigger):
+    """`.forget <key>`- Remove <key> from your file."""
     key = trigger.group(2).lower()
 
     keystore = bot.db.get_nick_value(trigger.nick, "pkskeys")
