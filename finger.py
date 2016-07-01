@@ -71,6 +71,8 @@ def finger(bot, trigger):
         return
     elif key is not None:
         key = key.lower()
+        if key[0] == "@":
+            return
         raw_data = bot.db.get_nick_value(user, "pks_" + key)
         data = _dataScript(raw_data, bot.db)
 
@@ -95,6 +97,9 @@ def remember(bot, trigger):
         keystore = keystore.split("#")
         if key not in keystore:
             keystore.append(key)
+        if "@" + key in keystore:
+            bot.notice("Sorry, that key is locked.", trigger.nick)
+            return
     else:
         keystore = [key]
 
@@ -104,6 +109,9 @@ def remember(bot, trigger):
 
     if '$date' in val:
         val = val.replace('$cdate', dt.strftime("%d/%m/%Y"))
+
+    if key[0] == "@":
+        val = hmac.new("Doesn'tMatter", msg=val, digestmod="SHA256")
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
@@ -115,12 +123,16 @@ def remember(bot, trigger):
 @module.commands('forget')
 def forget(bot, trigger):
     """`.forget <key>`- Remove <key> from your file."""
-    key = trigger.group(2).lower()
+    key = trigger.group(2)
+    if len(key.split(" ")) > 1:
+        key, passw = trigger.group(2).split(" ")
+
+    key = key.lower()
 
     keystore = bot.db.get_nick_value(trigger.nick, "pkskeys")
     if keystore:
         keystore = keystore.split("#")
-        if key in keystore:
+        if key in keystore and "@"+key not in keystore:
             keystore.remove(key)
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
     bot.db.set_nick_value(trigger.nick, "pks_" + key, None)
