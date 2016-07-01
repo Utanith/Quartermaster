@@ -1,5 +1,6 @@
 import sopel.module as module
 import re
+import hmac
 from datetime import datetime
 
 
