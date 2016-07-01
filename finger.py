@@ -112,7 +112,8 @@ def remember(bot, trigger):
         val = val.replace('$cdate', dt.strftime("%d/%m/%Y"))
 
     if key[0] == "@":
-        val = hmac.new("Doesn'tMatter", msg=val, digestmod="SHA256")
+        hashkey = "Doesn'tMatter".encode("utf-8")
+        val = hmac.new(hashkey, msg=val, digestmod="SHA256")
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
