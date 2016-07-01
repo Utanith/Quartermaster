@@ -114,7 +114,7 @@ def remember(bot, trigger):
     if key[0] == "@":
         hashkey = "Doesn'tMatter".encode("utf-8")
         val = val.encode("utf-8")
-        val = hmac.new(hashkey, msg=val, digestmod="SHA256")
+        val = hmac.new(hashkey, msg=val, digestmod="SHA256").hexdigest()
 
     bot.db.set_nick_value(trigger.nick, "pkskeys", "#".join(keystore))
 
