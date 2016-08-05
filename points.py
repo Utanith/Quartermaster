@@ -5,7 +5,103 @@ from sopel.config.types import (
 		StaticSection, FilenameAttribute, ValidatedAttribute
 	)
 import sopel.module as module
+import re
 
+def setup(bot):
+    bot.db.execute("CREATE TABLE IF NOT EXISTS karma_values (thing text unique, karma int)")
+    bot.db.execute("CREATE TABLE IF NOT EXISTS karma_log (thing int, reason text)")
+
+@module.rule('(.+)(\+\+|\-\-)( .+)?')
+def add_karma(bot, trigger):
+    db = bot.db
+
+    print(trigger.groups())
+
+    args = len(trigger.groups())
+    msg = thing = sign = reason = None
+    if args == 3:
+        thing, sign, reason = trigger.groups()
+    else:
+        bot.reply("Invalid syntax")
+        return
+
+    print(msg)
+
+    sign = sign[-2:]
+
+    if thing is None:
+        return
+    
+    thing = thing.lower()
+    if thing == trigger.nick.lower():
+        return
+
+    val = 0
+    tid = None
+
+    if sign == "++":
+        res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+        res = res.fetchall()
+        if len(res) == 1:
+            tid = res[0][0]
+            val = res[0][1]
+            val += 1
+            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
+        else:
+            res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, 1))
+            tid = res.lastrowid
+            val = 1
+    else:
+        res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+        res = res.fetchall()
+        if len(res) == 1:
+            tid = res[0][0]
+            val = res[0][1]
+            val -= 1
+            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
+        else:
+            res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, -1))
+            tid = res.lastrowid
+            val = -1
+
+    if val:
+        bot.say("[KARMA] {} now has {} karma.".format(thing, val))
+
+    if tid:
+        if reason:
+            reason = "<{}>: {}{} {}".format(trigger.nick, thing, sign, reason.strip())
+        else:
+            reason = "<{}>: {}{}".format(trigger.nick, thing, sign)
+        db.execute("INSERT INTO karma_log VALUES (?, ?)", (tid, reason))
+
+@module.commands('klog')
+@module.example('.klog Dragon')
+def klog(bot, trigger):
+    args = trigger.group(0).split(" ")
+    if args[0] != ".klog":
+        return
+
+    thing = args[1]
+    res = bot.db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+    res = res.fetchall()
+    if len(res) == 1:
+        tid = res[0][0]
+        karma = res[0][1]
+    else:
+        bot.reply("No karma for {}.".format(thing))
+
+    bot.say("[KARMA] {} has {} karma.".format(thing, karma))
+
+    limit = 3
+    if len(args) == 3:
+        try:
+            limit = int(args[2])
+        except:
+            limit = 3
+
+    res = bot.db.execute("SELECT reason FROM karma_log WHERE thing = ? ORDER BY ROWID DESC LIMIT ?", (tid,limit))
+    for i in res.fetchall():
+        bot.say("[KARMA] {}".format(i[0]))
 
 @module.commands('top')
 @module.example('.top Gold')
