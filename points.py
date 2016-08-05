@@ -12,6 +12,7 @@ def setup(bot):
     bot.db.execute("CREATE TABLE IF NOT EXISTS karma_log (thing int, reason text)")
 
 @module.rule('(.+)(\+\+|\-\-)( .+)?')
+@module.rate(600)
 def add_karma(bot, trigger):
     db = bot.db
 
