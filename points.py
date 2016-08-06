@@ -37,6 +37,8 @@ def add_karma(bot, trigger):
         return
 
     thing = thing.lower()
+
+    # Deny own karma
     if thing == trigger.nick.lower():
         return
 
@@ -44,6 +46,14 @@ def add_karma(bot, trigger):
     res = res.fetchall()
     if len(res) == 1:
         thing = res[0][0]
+
+    # Also deny karma to aliases of self
+    if thing == trigger.nick.lower():
+        return
+
+    # Further, deny the "namespace" of self
+    if re.match("{}\_.*".format(trigger.nick.lower()), thing):
+        return
 
     val = 0
     tid = None
@@ -154,6 +164,7 @@ def kalias(bot, trigger):
                 bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (newval, thing))
                 bot.db.execute("UPDATE karma_log SET thing = ? WHERE thing = ?", (tid, oldid))
                 bot.db.execute("DELETE FROM karma_values WHERE thing = ?", (alias,))
+            bot.reply("Done.")
     else:
         bot.reply("Target for alias does not exist.")
 
