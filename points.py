@@ -87,11 +87,19 @@ def add_karma(bot, trigger):
 @module.commands('klog')
 @module.example('.klog Dragon')
 def klog(bot, trigger):
-    args = trigger.group(0).split(" ")
+    args = trigger.group(0).split(" ", 2)
     if args[0] != ".klog":
         return
 
+    limit = 3
     thing = args[1]
+    try:
+        limit = int(thing)
+        thing = " ".join(args[2:])
+    except:
+        limit = 3
+        thing = " ".join(args[1:])
+
     res = bot.db.execute("SELECT thing FROM karma_aliases WHERE alias = ?", (thing,))
     res = res.fetchall()
     if len(res) == 1:
@@ -108,13 +116,6 @@ def klog(bot, trigger):
         return
 
     bot.say("[KARMA] {} has {} karma.".format(thing, karma))
-
-    limit = 3
-    if len(args) == 3:
-        try:
-            limit = int(args[2])
-        except:
-            limit = 3
 
     res = bot.db.execute("SELECT reason FROM karma_log WHERE thing = ? ORDER BY ROWID DESC LIMIT ?", (tid, limit))
     for i in res.fetchall():
@@ -135,6 +136,7 @@ def kalias(bot, trigger):
     res = bot.db.execute("SELECT ROWID,karma FROM karma_values WHERE thing = ?", (thing,))
     res = res.fetchall()
     if len(res) == 1:
+        tid = res[0][0]
         val = res[0][1]
         res = bot.db.execute("SELECT * FROM karma_aliases WHERE alias = ?", (alias,))
         res = res.fetchall()
@@ -143,12 +145,14 @@ def kalias(bot, trigger):
             return
         else:
             bot.db.execute("INSERT INTO karma_aliases VALUES (?, ?)", (thing, alias))
-            res = bot.db.execute("SELECT karma FROM karma_values WHERE thing = ?", (alias,))
+            res = bot.db.execute("SELECT karma, ROWID FROM karma_values WHERE thing = ?", (alias,))
             res = res.fetchall()
             if len(res) == 1:
                 aval = res[0][0]
+                oldid = res[0][1]
                 newval = aval + val
                 bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (newval, thing))
+                bot.db.execute("UPDATE karma_log SET thing = ? WHERE thing = ?", (tid, oldid))
                 bot.db.execute("DELETE FROM karma_values WHERE thing = ?", (alias,))
     else:
         bot.reply("Target for alias does not exist.")
