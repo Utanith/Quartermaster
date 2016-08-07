@@ -94,6 +94,22 @@ def add_karma(bot, trigger):
         db.execute("INSERT INTO karma_log VALUES (?, ?)", (tid, reason))
 
 
+@module.commands('ktop')
+@module.example('.ktop')
+def ktop(bot, trigger):
+    args = trigger.group(0).split(" ")
+
+    limit = 5
+    if len(args) == 2:
+        limit = int(args[1])
+
+    res = bot.db.execute("SELECT thing, karma FROM karma_values ORDER BY karma DESC LIMIT ?", (limit,))
+    res = res.fetchall()
+    rank = 1
+    for thing in res:
+        bot.say("[KARMA] #{} - {} has {} karma".format(rank, thing[0], thing[1]))
+        rank += 1
+
 @module.commands('klog')
 @module.example('.klog Dragon')
 def klog(bot, trigger):
