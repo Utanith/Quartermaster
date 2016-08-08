@@ -6,6 +6,7 @@ from sopel.config.types import (
     )
 import sopel.module as module
 import re
+import time
 
 
 def setup(bot):
@@ -14,85 +15,143 @@ def setup(bot):
     bot.db.execute("CREATE TABLE IF NOT EXISTS karma_aliases (thing text, alias text unique)")
 
 
-@module.rule('(.+)(\+\+|\-\-)( .+)?')
-@module.rate(600)
-def add_karma(bot, trigger):
-    db = bot.db
+def _is_alias(db, thing):
+    res = db.execute("SELECT thing FROM karma_aliases WHERE alias = ?", (thing,))
+    res = res.fetchall()
+    if len(res) == 1:
+        return res[0][0]
+    return thing
 
-    print(trigger.groups())
 
-    args = len(trigger.groups())
-    msg = thing = sign = reason = None
-    if args == 3:
-        thing, sign, reason = trigger.groups()
-    else:
-        bot.reply("Invalid syntax")
-        return
-
-    print(msg)
-
-    sign = sign[-2:]
-
+def _add_karma(thing, db, sign):
     if thing is None:
         return
 
     thing = thing.lower()
 
-    # Deny own karma
-    if thing == trigger.nick.lower():
-        return
+    val = 0
 
-    res = db.execute("SELECT thing FROM karma_aliases WHERE alias = ?", (thing,))
+    try:
+        if sign == 1:
+            res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+            res = res.fetchall()
+            if len(res) == 1:
+                val = res[0][1]
+                val += 1
+                db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
+            else:
+                res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, 1))
+                val = 1
+        elif sign == -1:
+            res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+            res = res.fetchall()
+            if len(res) == 1:
+                val = res[0][1]
+                val -= 1
+                db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
+            else:
+                res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, -1))
+                val = -1
+    except:
+        return None
+    return val
+
+
+def _is_on_cooldown(db, sender):
+    return False
+    ctime = db.get_nick_value(sender, 'karma_time')
+    if ctime is not None:
+        if ctime + 60 > time.time():
+            return True
+    return False
+
+
+def _get_thing_id(db, thing):
+    thing = _is_alias(db, thing)
+    res = db.execute("SELECT ROWID from karma_values WHERE thing = ?", (thing,))
     res = res.fetchall()
     if len(res) == 1:
-        thing = res[0][0]
+        return res[0][0]
 
-    # Also deny karma to aliases of self
-    if thing == trigger.nick.lower():
-        return
 
-    # Further, deny the "namespace" of self
-    if re.match("{}\_.*".format(trigger.nick.lower()), thing):
-        return
-
-    val = 0
-    tid = None
-
-    if sign == "++":
-        res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
-        res = res.fetchall()
-        if len(res) == 1:
-            tid = res[0][0]
-            val = res[0][1]
-            val += 1
-            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
-        else:
-            res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, 1))
-            tid = res.lastrowid
-            val = 1
-    else:
-        res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
-        res = res.fetchall()
-        if len(res) == 1:
-            tid = res[0][0]
-            val = res[0][1]
-            val -= 1
-            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
-        else:
-            res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, -1))
-            tid = res.lastrowid
-            val = -1
-
-    if val:
-        bot.say("[KARMA] {} now has {} karma.".format(thing, val))
+def _karma_log(db, thing, sender, sign, reason):
+    tid = _get_thing_id(db, thing)
 
     if tid:
         if reason:
-            reason = "<{}>: {}{} {}".format(trigger.nick, thing, sign, reason.strip())
+            reason = "<{}>: {}{} {}".format(sender, thing, sign, reason.strip())
         else:
-            reason = "<{}>: {}{}".format(trigger.nick, thing, sign)
+            reason = "<{}>: {}{}".format(sender, thing, sign)
         db.execute("INSERT INTO karma_log VALUES (?, ?)", (tid, reason))
 
+    db.set_nick_value(sender, "karma_time", time.time())
+
+
+@module.rule('^(\-\-|\+\+)( .{1,75})?$')
+def repeat_karma(bot, trigger):
+    db = bot.db
+
+    if 'lastkarma_' + trigger.sender in bot.memory:
+        thing = bot.memory['lastkarma_' + trigger.sender]
+        if _is_on_cooldown(db, trigger.nick):
+            bot.reply("You can only do karma actions once every ten minutes.")
+            return
+
+        sign = None
+        if trigger.group(1) == '++':
+            sign = 1
+        else:
+            sign = -1
+
+        if sign:
+            val = _add_karma(thing, db, sign)
+            if val:
+                sign = '++' if sign > 0 else '--'
+                bot.say("[KARMA] {} now has {} karma.".format(thing, val))
+                if trigger.group(2):
+                    _karma_log(db, thing, trigger.nick, sign, trigger.group(2))
+                else:
+                    _karma_log(db, thing, trigger.nick, sign, None)
+
+
+@module.rule('(.{3,15})(\+\+|\-\-)( .{1,75})?')
+def add_karma(bot, trigger):
+    db = bot.db
+
+    sender = trigger.nick
+
+    if _is_on_cooldown(db, sender):
+        bot.reply("You can only do karma actions once every ten minutes.", trigger.sender, sender, notice=True)
+        return
+
+    args = len(trigger.groups())
+    thing = sign = reason = None
+    if args == 3:
+        thing, sign, reason = trigger.groups()
+    else:
+        bot.reply("Invalid syntax", trigger.sender, sender, notice=True)
+        return
+
+    sign = 1 if sign[-2:] == "++" else -1
+
+    if thing is None:
+        return
+
+    thing = thing.lower()
+    if thing == sender.lower():
+        bot.reply("No.", trigger.sender, sender, notice=True)
+        return
+
+    val = _add_karma(thing, db, sign)
+
+    if val:
+        bot.say("[KARMA] {} now has {} karma.".format(thing, val))
+        sign = '++' if sign > 0 else '--'
+        _karma_log(db, thing, sender, sign, reason)
+    else:
+        bot.reply("There was a problem.", trigger.sender, sender, notice=True)
+
+    bot.memory['lastkarma_' + trigger.sender] = thing
 
 @module.commands('ktop')
 @module.example('.ktop')
@@ -239,7 +298,7 @@ def mint(bot, trigger):
         coins.namePoints(old, trigger.group(3))
     else:
         coins.addPoints(trigger.group(3), trigger.nick)
-        
+
     bot.say("Your currency is now called \"" + trigger.group(3) + "\".")
 
 
