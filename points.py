@@ -96,6 +96,16 @@ def repeat_karma(bot, trigger):
             bot.reply("You can only do karma actions once every ten minutes.")
             return
 
+        # Deny giving karma to self
+        if thing == trigger.nick.lower():
+            bot.reply("No.", trigger.sender, trigger.nick, notice=True)
+            return
+
+        # Further, deny the "namespace" of self
+        if re.match("{}\_.*".format(trigger.nick.lower()), thing):
+            bot.reply("No.", trigger.sender, sender, notice=True)
+            return
+
         sign = None
         if trigger.group(1) == '++':
             sign = 1
@@ -138,6 +148,11 @@ def add_karma(bot, trigger):
 
     thing = thing.lower()
     if thing == sender.lower():
+        bot.reply("No.", trigger.sender, sender, notice=True)
+        return
+
+    # Further, deny the "namespace" of self
+    if re.match("{}\_.*".format(trigger.nick.lower()), thing):
         bot.reply("No.", trigger.sender, sender, notice=True)
         return
 
