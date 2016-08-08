@@ -58,7 +58,6 @@ def _add_karma(thing, db, sign):
 
 
 def _is_on_cooldown(db, sender):
-    return False
     ctime = db.get_nick_value(sender, 'karma_time')
     if ctime is not None:
         if ctime + 60 > time.time():
