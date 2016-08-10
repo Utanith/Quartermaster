@@ -256,7 +256,7 @@ def kadmin(bot, trigger):
         if _get_thing_id(bot.db, thing):
             bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
         else:
-            bot.db.execute("INSERT INTO karma_values (?, ?)", (thing, val))
+            bot.db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, val))
         newval = _get_karma(bot.db, thing)
         bot.reply("{} now has {} karma.".format(thing, newval), trigger.sender, trigger.nick, notice=True)
 
