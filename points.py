@@ -182,7 +182,7 @@ def klog(bot, trigger):
         return
 
     limit = 3
-    thing = args[1]
+    thing = args[1].lower()
     try:
         limit = int(thing)
         thing = " ".join(args[2:])
@@ -256,7 +256,7 @@ def kadmin(bot, trigger):
         if _get_thing_id(bot.db, thing):
             bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
         else:
-            bot.db.execute("INSERT INTO karma_values (?, ?" (thing, val))
+            bot.db.execute("INSERT INTO karma_values (?, ?)", (thing, val))
         newval = _get_karma(bot.db, thing)
         bot.reply("{} now has {} karma.".format(thing, newval), trigger.sender, trigger.nick, notice=True)
 
