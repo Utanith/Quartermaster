@@ -252,12 +252,23 @@ def kadmin(bot, trigger):
 
     if subc == "modify":
         thing = _is_alias(bot.db, trigger.group(4))
-        val = trigger.group(5)
+        val = int(trigger.group(5))
+        oldval = _get_karma(bot.db, thing)
         if _get_thing_id(bot.db, thing):
             bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
         else:
             bot.db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, val))
         newval = _get_karma(bot.db, thing)
+        sign = None
+        diff = 0
+        if oldval - newval >= 0:
+            sign = "-"
+            diff = oldval - newval
+        else:
+            sign = "+"
+            diff = newval - oldval
+
+        _karma_log(bot.db, thing, trigger.nick, sign, "ADMIN {}{}".format(sign, diff))
         bot.reply("{} now has {} karma.".format(thing, newval), trigger.sender, trigger.nick, notice=True)
 
     if subc == "list":
