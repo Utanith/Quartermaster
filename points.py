@@ -23,35 +23,31 @@ def _is_alias(db, thing):
     return thing
 
 
+def _get_karma(db, thing):
+    karma = 0
+    thing = _is_alias(db, thing)
+    res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
+    res = res.fetchall()
+    if len(res) == 1:
+        karma = res[0][1]
+        return karma
+    return 0
+
 def _add_karma(thing, db, sign):
     if thing is None:
         return
 
     thing = thing.lower()
 
-    val = 0
+    val = _get_karma(db, thing)
 
     try:
         if sign == 1:
-            res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
-            res = res.fetchall()
-            if len(res) == 1:
-                val = res[0][1]
-                val += 1
-                db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
-            else:
-                res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, 1))
-                val = 1
+            val += 1
+            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
         elif sign == -1:
-            res = db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
-            res = res.fetchall()
-            if len(res) == 1:
-                val = res[0][1]
-                val -= 1
-                db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
-            else:
-                res = db.execute("INSERT INTO karma_values VALUES (?, ?)", (thing, -1))
-                val = -1
+            val -= 1
+            db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
     except:
         return None
     return val
@@ -71,6 +67,7 @@ def _get_thing_id(db, thing):
     res = res.fetchall()
     if len(res) == 1:
         return res[0][0]
+    return None
 
 
 def _karma_log(db, thing, sender, sign, reason):
@@ -103,19 +100,14 @@ def repeat_karma(bot, trigger):
 
         # Further, deny the "namespace" of self
         if re.match("{}\_.*".format(trigger.nick.lower()), thing):
-            bot.reply("No.", trigger.sender, sender, notice=True)
+            bot.reply("No.", trigger.sender, trigger.nick, notice=True)
             return
 
-        sign = None
-        if trigger.group(1) == '++':
-            sign = 1
-        else:
-            sign = -1
+        sign = trigger.group(1)
 
         if sign:
-            val = _add_karma(thing, db, sign)
+            val = _add_karma(thing, db, 1 if sign is '++' else -1)
             if val:
-                sign = '++' if sign > 0 else '--'
                 bot.say("[KARMA] {} now has {} karma.".format(thing, val))
                 if trigger.group(2):
                     _karma_log(db, thing, trigger.nick, sign, trigger.group(2))
@@ -123,7 +115,7 @@ def repeat_karma(bot, trigger):
                     _karma_log(db, thing, trigger.nick, sign, None)
 
 
-@module.rule('(.{3,15})(\+\+|\-\-)( .{1,75})?')
+@module.rule('(.{3,15})(?:: )?(\+\+|\-\-)( .{1,75})?')
 def add_karma(bot, trigger):
     db = bot.db
 
@@ -141,7 +133,7 @@ def add_karma(bot, trigger):
         bot.reply("Invalid syntax", trigger.sender, sender, notice=True)
         return
 
-    sign = 1 if sign[-2:] == "++" else -1
+    sign = sign[-2:]
 
     if thing is None:
         return
@@ -156,11 +148,10 @@ def add_karma(bot, trigger):
         bot.reply("No.", trigger.sender, sender, notice=True)
         return
 
-    val = _add_karma(thing, db, sign)
+    val = _add_karma(thing, db, 1 if sign == "++" else -1)
 
     if val:
         bot.say("[KARMA] {} now has {} karma.".format(thing, val))
-        sign = '++' if sign > 0 else '--'
         _karma_log(db, thing, sender, sign, reason)
     else:
         bot.reply("There was a problem.", trigger.sender, sender, notice=True)
@@ -199,10 +190,7 @@ def klog(bot, trigger):
         limit = 3
         thing = " ".join(args[1:])
 
-    res = bot.db.execute("SELECT thing FROM karma_aliases WHERE alias = ?", (thing,))
-    res = res.fetchall()
-    if len(res) == 1:
-        thing = res[0][0]
+    thing = _is_alias(bot.db, thing)
 
     karma = 0
     res = bot.db.execute("SELECT ROWID, karma FROM karma_values WHERE thing = ?", (thing,))
@@ -256,6 +244,28 @@ def kalias(bot, trigger):
             bot.reply("Done.")
     else:
         bot.reply("Target for alias does not exist.")
+
+@module.commands('kadmin')
+@module.require_admin()
+def kadmin(bot, trigger):
+    subc = trigger.group(3).lower()
+
+    if subc == "modify":
+        thing = _is_alias(bot.db, trigger.group(4))
+        val = trigger.group(5)
+        if _get_thing_id(bot.db, thing):
+            bot.db.execute("UPDATE karma_values SET karma = ? WHERE thing = ?", (val, thing))
+        else:
+            bot.db.execute("INSERT INTO karma_values (?, ?" (thing, val))
+        newval = _get_karma(bot.db, thing)
+        bot.reply("{} now has {} karma.".format(thing, newval), trigger.sender, trigger.nick, notice=True)
+
+    if subc == "list":
+        res = bot.db.execute("SELECT thing, karma FROM karma_values")
+        res = res.fetchall()
+        for i in res:
+            msg = "{}: {} karma".format(i[0], i[1])
+            bot.reply(msg, trigger.sender, trigger.nick, notice=True)
 
 
 @module.commands('top')
