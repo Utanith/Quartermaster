@@ -15,6 +15,15 @@ def setup(bot):
     bot.db.execute("CREATE TABLE IF NOT EXISTS karma_aliases (thing text, alias text unique)")
 
 
+def _get_thing_id(db, thing):
+    thing = _is_alias(db, thing)
+    res = db.execute("SELECT ROWID from karma_values WHERE thing = ?", (thing,))
+    res = res.fetchall()
+    if len(res) == 1:
+        return res[0][0]
+    return None
+
+
 def _is_alias(db, thing):
     res = db.execute("SELECT thing FROM karma_aliases WHERE alias = ?", (thing,))
     res = res.fetchall()
@@ -38,6 +47,8 @@ def _add_karma(thing, db, sign):
         return
 
     thing = thing.lower()
+    if not _get_thing_id(db, thing):
+        db.execute("INSERT INTO karma_values values (?, 0)", (thing,))
 
     val = _get_karma(db, thing)
 
@@ -59,15 +70,6 @@ def _is_on_cooldown(db, sender):
         if ctime + 60 > time.time():
             return True
     return False
-
-
-def _get_thing_id(db, thing):
-    thing = _is_alias(db, thing)
-    res = db.execute("SELECT ROWID from karma_values WHERE thing = ?", (thing,))
-    res = res.fetchall()
-    if len(res) == 1:
-        return res[0][0]
-    return None
 
 
 def _karma_log(db, thing, sender, sign, reason):
