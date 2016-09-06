@@ -109,7 +109,7 @@ def repeat_karma(bot, trigger):
 
         if sign:
             val = _add_karma(thing, db, 1 if sign is '++' else -1)
-            if val:
+            if val is not None:
                 bot.say("[KARMA] {} now has {} karma.".format(thing, val))
                 if trigger.group(2):
                     _karma_log(db, thing, trigger.nick, sign, trigger.group(2))
@@ -150,13 +150,15 @@ def add_karma(bot, trigger):
         bot.reply("No.", trigger.sender, sender, notice=True)
         return
 
-    val = _add_karma(thing, db, 1 if sign == "++" else -1)
+    newsign = 1 if sign == "++" else -1
+    val = _add_karma(thing, db, newsign)
 
-    if val:
+    if val is not None:
         bot.say("[KARMA] {} now has {} karma.".format(thing, val))
         _karma_log(db, thing, sender, sign, reason)
     else:
         bot.reply("There was a problem.", trigger.sender, sender, notice=True)
+        return
 
     bot.memory['lastkarma_' + trigger.sender] = thing
 
